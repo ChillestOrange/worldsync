@@ -27,7 +27,7 @@ public class WorldSaveMixin {
             return;
         }
 
-        WorldSyncLogger.info("Target world detected, starting sync: world=", worldName);
+        WorldSyncLogger.info("Target world detected, starting sync: world={}", worldName);
 
         WorldSyncService.runSyncAsync("World save mixin thread");
     }

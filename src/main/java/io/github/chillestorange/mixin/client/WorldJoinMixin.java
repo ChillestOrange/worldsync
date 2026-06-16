@@ -53,8 +53,8 @@ public class WorldJoinMixin {
                 return;
             }
 
-            WorldSyncLogger.info("Updated level.dat: path=", levelDatPath);
-            WorldSyncLogger.info("Opening synced world: id=", levelId);
+            WorldSyncLogger.info("Updated level.dat: path={}", levelDatPath);
+            WorldSyncLogger.info("Opening synced world: id={}", levelId);
 
             minecraft.execute(() ->
                     minecraft.createWorldOpenFlows().openWorld(levelId, list::returnToScreen));

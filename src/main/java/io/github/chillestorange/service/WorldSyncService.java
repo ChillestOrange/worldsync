@@ -93,7 +93,7 @@ public final class WorldSyncService {
             builder.directory(WorldSyncConfig.syncExecutableDirectory().toFile());
             builder.redirectErrorStream(true);
 
-            WorldSyncLogger.info("Launching executable: path=", executable);
+            WorldSyncLogger.info("Launching executable: path={}", executable);
 
             Process process = builder.start();
 
@@ -113,7 +113,7 @@ public final class WorldSyncService {
             }
 
             int exitCode = process.exitValue();
-            WorldSyncLogger.info("Executable exited: code=", exitCode);
+            WorldSyncLogger.info("Executable exited: code={}", exitCode);
 
             return exitCode == 0;
 
