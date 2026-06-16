@@ -7,6 +7,8 @@ import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 
+import java.nio.file.Path;
+
 public final class WorldSyncConfig {
 
     public static final ConfigClassHandler<WorldSyncConfig> HANDLER =
@@ -28,7 +30,15 @@ public final class WorldSyncConfig {
 
     @SerialEntry(comment = "Path to the directory where File_accesser.exe is at.")
     public String syncExecutableDirectory = "";
-
     @SerialEntry(comment = "Name of the world to be synced.")
     public String targetWorld = "";
+
+    public static Path syncExecutableDirectory() {
+        return Path.of(HANDLER.instance().syncExecutableDirectory);
+    }
+
+    public static String targetWorld() {
+        return HANDLER.instance().targetWorld;
+    }
+
 }

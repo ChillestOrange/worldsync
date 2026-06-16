@@ -1,5 +1,6 @@
 package io.github.chillestorange.mixin.client;
 
+import io.github.chillestorange.config.WorldSyncConfig;
 import io.github.chillestorange.logging.WorldSyncLogger;
 import io.github.chillestorange.service.WorldSyncService;
 import net.minecraft.client.Minecraft;
@@ -32,7 +33,7 @@ public class WorldJoinMixin {
 
     @Inject(method = "joinWorld", at = @At("HEAD"), cancellable = true)
     private void worldsync$joinWorld(CallbackInfo ci) {
-        if (!WorldSyncService.targetWorld().equals(summary.getLevelName())) {
+        if (!WorldSyncConfig.targetWorld().equals(summary.getLevelName())) {
             return;
         }
 

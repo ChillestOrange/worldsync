@@ -1,5 +1,6 @@
 package io.github.chillestorange.mixin.client;
 
+import io.github.chillestorange.config.WorldSyncConfig;
 import io.github.chillestorange.logging.WorldSyncLogger;
 import io.github.chillestorange.service.WorldSyncService;
 import net.minecraft.client.server.IntegratedServer;
@@ -22,7 +23,7 @@ public class WorldSaveMixin {
 
         String worldName = server.getWorldData().getLevelName();
 
-        if (!WorldSyncService.targetWorld().equals(worldName)) {
+        if (!WorldSyncConfig.targetWorld().equals(worldName)) {
             return;
         }
 

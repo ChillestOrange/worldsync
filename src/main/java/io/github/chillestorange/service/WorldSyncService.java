@@ -24,16 +24,8 @@ public final class WorldSyncService {
     private WorldSyncService() {
     }
 
-    public static String targetWorld() {
-        return WorldSyncConfig.HANDLER.instance().targetWorld;
-    }
-
-    private static Path syncDirectory() {
-        return Path.of(WorldSyncConfig.HANDLER.instance().syncExecutableDirectory);
-    }
-
     private static Path syncExecutable() {
-        return syncDirectory().resolve("File_accesser.exe");
+        return WorldSyncConfig.syncExecutableDirectory().resolve("File_accesser.exe");
     }
 
     public static void runSyncAsync(String threadName) {
@@ -98,7 +90,7 @@ public final class WorldSyncService {
             }
 
             ProcessBuilder builder = new ProcessBuilder(executable.toString());
-            builder.directory(syncDirectory().toFile());
+            builder.directory(WorldSyncConfig.syncExecutableDirectory().toFile());
             builder.redirectErrorStream(true);
 
             WorldSyncLogger.info("Launching executable: path=", executable);
