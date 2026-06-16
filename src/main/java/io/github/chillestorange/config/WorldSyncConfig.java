@@ -30,8 +30,15 @@ public final class WorldSyncConfig {
 
     @SerialEntry(comment = "Path to the directory where File_accesser.exe is at.")
     public String syncExecutableDirectory = "";
+
     @SerialEntry(comment = "Name of the world to be synced.")
     public String targetWorld = "";
+
+    @SerialEntry(comment = "Whether autosave should be enabled. (WARNING: uses more internet) (experimental)")
+    public boolean autosaveSyncEnabled = false;
+
+    @SerialEntry(comment = "Interval in ticks between autosaves.")
+    public int autosaveIntervalTicks = 6000;
 
     public static Path syncExecutableDirectory() {
         return Path.of(HANDLER.instance().syncExecutableDirectory);
@@ -41,4 +48,11 @@ public final class WorldSyncConfig {
         return HANDLER.instance().targetWorld;
     }
 
+    public static boolean autosaveSyncEnabled() {
+        return HANDLER.instance().autosaveSyncEnabled;
+    }
+
+    public static int autosaveIntervalTicks() {
+        return HANDLER.instance().autosaveIntervalTicks;
+    }
 }

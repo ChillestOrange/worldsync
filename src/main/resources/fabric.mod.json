@@ -17,6 +17,9 @@
   "entrypoints": {
     "main": [
       "io.github.chillestorange.WorldSync"
+    ],
+    "client": [
+      "io.github.chillestorange.client.WorldSyncClient"
     ]
   },
   "mixins": [
