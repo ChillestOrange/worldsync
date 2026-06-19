@@ -17,14 +17,14 @@ public final class WorldSyncConfig {
     public static final ConfigClassHandler<WorldSyncConfig> HANDLER =
             ConfigClassHandler.createBuilder(WorldSyncConfig.class)
                     .id(Identifier.fromNamespaceAndPath(
-                            "worldsync",
+                            WorldSync.MOD_ID,
                             "config"
                     ))
                     .serializer(config -> GsonConfigSerializerBuilder.create(config)
                             .setPath(
                                     FabricLoader.getInstance()
                                             .getConfigDir()
-                                            .resolve("worldsync.json5")
+                                            .resolve(WorldSync.MOD_ID + ".json5")
                             )
                             .appendGsonBuilder(GsonBuilder::setPrettyPrinting)
                             .setJson5(true)
