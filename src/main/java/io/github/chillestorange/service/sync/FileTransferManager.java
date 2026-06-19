@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.stream.Collectors;
 
 /**
  * Replaces transfer.py. Executes queued upload/download tasks, sequentially
@@ -96,7 +95,7 @@ public final class FileTransferManager {
             } catch (IOException e) {
                 if (attempt < MAX_RETRIES - 1) {
                     WorldSyncLogger.warn("Upload retry " + (attempt + 1) + "/" + MAX_RETRIES + ": " + task.name());
-                    if (!sleep(RETRY_DELAY_MILLIS)) return;
+                    if (sleep()) return;
                 } else {
                     WorldSyncLogger.error("Upload failed after " + MAX_RETRIES + " attempts: " + task.name(), e);
                 }
@@ -123,7 +122,7 @@ public final class FileTransferManager {
             } catch (IOException e) {
                 if (attempt < MAX_RETRIES - 1) {
                     WorldSyncLogger.warn("Download retry " + (attempt + 1) + "/" + MAX_RETRIES + ": " + task.name());
-                    if (!sleep(RETRY_DELAY_MILLIS)) return;
+                    if (sleep()) return;
                 } else {
                     WorldSyncLogger.error("Download failed after " + MAX_RETRIES + " attempts: " + task.name(), e);
                 }
@@ -131,14 +130,14 @@ public final class FileTransferManager {
         }
     }
 
-    /** Returns false if interrupted while waiting, so the caller can stop retrying. */
-    private static boolean sleep(long millis) {
+    /** Returns true if interrupted while waiting, so the caller can stop retrying. */
+    private static boolean sleep() {
         try {
-            Thread.sleep(millis);
-            return true;
+            Thread.sleep(FileTransferManager.RETRY_DELAY_MILLIS);
+            return false;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            return false;
+            return true;
         }
     }
 }
