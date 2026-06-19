@@ -4,6 +4,7 @@ import com.google.gson.GsonBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
+import io.github.chillestorange.WorldSync;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.Credentials;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.ProviderType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -33,10 +34,10 @@ public final class WorldSyncConfig {
     @SerialEntry(comment = "Name of the world to be synced.")
     public String targetWorld = "";
 
-    @SerialEntry(comment = "Whether syncing should also run after each autosave. (WARNING: uses more internet) (experimental)")
+    @SerialEntry(comment = "[ Experimental ] Whether syncing should also run after each autosave.")
     public boolean autosaveSyncEnabled = false;
 
-    @SerialEntry(comment = "Interval in ticks between autosave-triggered syncs. Default 6000 = 5 minutes.")
+    @SerialEntry(comment = "[ Experimental ] Interval in ticks between autosave-triggered syncs. Default 6000 = 5 minutes.")
     public int autosaveIntervalTicks = 6000;
 
     @SerialEntry(comment = "Cloud provider to use for syncing. Currently only GOOGLE_DRIVE is supported.")
@@ -55,6 +56,19 @@ public final class WorldSyncConfig {
             "acknowledge this), but avoid sharing your config file publicly.")
     public String clientSecret = "";
 
+    @SerialEntry(comment = "[ Advanced ] Number of files after which threaded execution is used.")
+    public int threadThreshold = 5;
+
+    @SerialEntry(comment = "[ Advanced ] Number of simultaneous file transfers during threaded execution.")
+    public int maxWorkers = 12;
+
+    @SerialEntry(comment = "[ Advanced ] Number of attempts per file before giving up.")
+    public int maxRetries = 3;
+
+    @SerialEntry(comment = "[ Advanced ] Delay between each retry (in ms).")
+    public long retryDelay = 1500;
+
+    // Accessors.
     public static String targetWorld() {
         return HANDLER.instance().targetWorld;
     }
@@ -65,10 +79,6 @@ public final class WorldSyncConfig {
 
     public static int autosaveIntervalTicks() {
         return HANDLER.instance().autosaveIntervalTicks;
-    }
-
-    public static String remoteFolderId() {
-        return HANDLER.instance().remoteFolderId;
     }
 
     /**
@@ -86,6 +96,10 @@ public final class WorldSyncConfig {
                     "Unknown cloudProvider in worldsync.json5: '" + raw +
                             "'. Valid values: GOOGLE_DRIVE", e);
         }
+    }
+
+    public static String remoteFolderId() {
+        return HANDLER.instance().remoteFolderId;
     }
 
     /**
@@ -107,6 +121,22 @@ public final class WorldSyncConfig {
      * itself so these files don't appear alongside user-edited config.
      */
     public static Path configDir() {
-        return FabricLoader.getInstance().getConfigDir().resolve("worldsync");
+        return FabricLoader.getInstance().getConfigDir().resolve(WorldSync.MOD_ID);
+    }
+
+    public static int threadThreshold() {
+        return HANDLER.instance().threadThreshold;
+    }
+
+    public static int maxWorkers() {
+        return HANDLER.instance().maxWorkers;
+    }
+
+    public static int maxRetries() {
+        return HANDLER.instance().maxRetries;
+    }
+
+    public static long retryDelay() {
+        return HANDLER.instance().retryDelay;
     }
 }

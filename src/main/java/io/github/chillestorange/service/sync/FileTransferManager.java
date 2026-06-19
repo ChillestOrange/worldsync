@@ -1,5 +1,6 @@
 package io.github.chillestorange.service.sync;
 
+import io.github.chillestorange.config.WorldSyncConfig;
 import io.github.chillestorange.logging.WorldSyncLogger;
 import io.github.chillestorange.service.cloud.CloudStorageProvider;
 import io.github.chillestorange.service.sync.SyncDiffEngine.TransferTask;
@@ -28,10 +29,10 @@ import java.util.concurrent.Future;
  */
 public final class FileTransferManager {
 
-    private static final int THREAD_THRESHOLD = 5;
-    private static final int MAX_WORKERS = 12;
-    private static final int MAX_RETRIES = 3;
-    private static final long RETRY_DELAY_MILLIS = 1500;
+    private static final int THREAD_THRESHOLD = WorldSyncConfig.threadThreshold();
+    private static final int MAX_WORKERS = WorldSyncConfig.maxWorkers();
+    private static final int MAX_RETRIES = WorldSyncConfig.maxRetries();
+    private static final long RETRY_DELAY_MILLIS = WorldSyncConfig.retryDelay();
 
     private final CloudStorageProvider provider;
 
