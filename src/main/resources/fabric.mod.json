@@ -20,7 +20,13 @@
     ],
     "client": [
       "io.github.chillestorange.client.WorldSyncClient"
+    ],
+    "modmenu": [
+      "io.github.chillestorange.integration.ModMenuIntegration"
     ]
+  },
+  "suggests": {
+    "modmenu": "*"
   },
   "mixins": [
     "worldsync.mixins.json"
