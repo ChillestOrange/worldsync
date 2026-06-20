@@ -41,7 +41,7 @@ public interface CloudStorageProvider {
         Map<String, List<CloudItem>> tree = new ConcurrentHashMap<>();
         Set<String> visited = ConcurrentHashMap.newKeySet();
 
-        // Using a fixed thread pool of 10 to avoid cloud provider rate limits
+        // Using Thread pool with number of workers from the mod menu
         ExecutorService executor = Executors.newFixedThreadPool(WorldSyncConfig.maxWorkers());
 
         try {
