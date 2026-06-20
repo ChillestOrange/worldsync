@@ -1,16 +1,20 @@
 package io.github.chillestorange.service.cloud;
 
+import io.github.chillestorange.config.WorldSyncConfig;
+
 import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Provider-agnostic contract for a cloud storage backend. GoogleDriveProvider
@@ -30,27 +34,62 @@ public interface CloudStorageProvider {
      * provider-specific in it, so a future Dropbox/OneDrive implementation
      * only needs listChildren and gets tree-fetching for free instead of
      * copy-pasting the same BFS GoogleDriveProvider used to carry.
+     * * Note: This implementation is now multi-threaded to execute network
+     * calls concurrently, drastically reducing total fetch time.
      */
     default Map<String, List<CloudItem>> fetchTree(String rootFolderId) throws IOException, InterruptedException {
-        Map<String, List<CloudItem>> tree = new HashMap<>();
-        Deque<String> queue = new ArrayDeque<>();
-        Set<String> visited = new HashSet<>();
-        queue.add(rootFolderId);
+        Map<String, List<CloudItem>> tree = new ConcurrentHashMap<>();
+        Set<String> visited = ConcurrentHashMap.newKeySet();
 
-        while (!queue.isEmpty()) {
-            String folderId = queue.poll();
-            if (!visited.add(folderId)) continue;
+        // Using a fixed thread pool of 10 to avoid cloud provider rate limits
+        ExecutorService executor = Executors.newFixedThreadPool(WorldSyncConfig.maxWorkers());
 
-            List<CloudItem> children = listChildren(folderId);
+        try {
+            fetchFolderAsync(rootFolderId, tree, visited, executor).join();
+        } catch (CompletionException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof IOException) {
+                throw (IOException) cause;
+            } else if (cause instanceof InterruptedException) {
+                throw (InterruptedException) cause;
+            }
+            throw new RuntimeException(e);
+        } finally {
+            executor.shutdownNow();
+        }
+
+        return tree;
+    }
+
+    /**
+     * Recursive async helper for fetchTree.
+     */
+    private CompletableFuture<Void> fetchFolderAsync(String folderId,
+                                                     Map<String, List<CloudItem>> tree,
+                                                     Set<String> visited,
+                                                     ExecutorService executor) {
+        if (!visited.add(folderId)) {
+            return CompletableFuture.completedFuture(null);
+        }
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return listChildren(folderId);
+            } catch (Exception e) {
+                throw new CompletionException(e);
+            }
+        }, executor).thenCompose(children -> {
             tree.put(folderId, children);
 
+            List<CompletableFuture<Void>> childTasks = new ArrayList<>();
             for (CloudItem item : children) {
                 if (item.isFolder()) {
-                    queue.add(item.id());
+                    childTasks.add(fetchFolderAsync(item.id(), tree, visited, executor));
                 }
             }
-        }
-        return tree;
+
+            return CompletableFuture.allOf(childTasks.toArray(new CompletableFuture[0]));
+        });
     }
 
     List<CloudItem> listChildren(String folderId) throws IOException, InterruptedException;
@@ -63,11 +102,11 @@ public interface CloudStorageProvider {
      * Create a new file, or overwrite an existing one's content.
      *
      * @param existingFileId the remote id if this file is already known to
-     *                       exist (SyncDiffEngine already resolved this while
-     *                       building the changeset), or null for a brand-new
-     *                       upload. Passing the known id avoids a redundant
-     *                       existence-check lookup the caller already did the
-     *                       work for.
+     * exist (SyncDiffEngine already resolved this while
+     * building the changeset), or null for a brand-new
+     * upload. Passing the known id avoids a redundant
+     * existence-check lookup the caller already did the
+     * work for.
      */
     String uploadOrReplace(Path localFile, String existingFileId, String folderId, String filename, Instant modifiedTime)
             throws IOException, InterruptedException;
