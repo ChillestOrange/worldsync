@@ -4,6 +4,7 @@ import io.github.chillestorange.client.ui.SyncingScreen;
 import io.github.chillestorange.config.WorldSyncConfig;
 import io.github.chillestorange.logging.WorldSyncLogger;
 import io.github.chillestorange.service.WorldSyncService;
+import io.github.chillestorange.util.WorldDataHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList.WorldListEntry;
@@ -53,7 +54,7 @@ public class WorldJoinMixin {
 
             Path levelDatPath = worldPath.resolve("level.dat");
 
-            if (!WorldSyncService.updateSingleplayerUuid(levelDatPath, uuid)) {
+            if (!WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid)) {
                 WorldSyncLogger.error("Failed to update level.dat: path=" + levelDatPath);
                 return;
             }
