@@ -40,7 +40,7 @@ public class WorldSaveMixin {
 
         var worldPath = storageSource.getLevelPath(LevelResource.ROOT);
 
-        WorldSyncLogger.info("Target world closed, starting upload sync for world {}.", levelId);
+        WorldSyncLogger.info("Target world closed, starting upload sync for world {}", levelId);
 
         var minecraft = Minecraft.getInstance();
         minecraft.execute(() -> minecraft.setScreen(new SyncingScreen()));
@@ -48,11 +48,11 @@ public class WorldSaveMixin {
         WorldSyncService.runSyncCycle(
                 worldPath,
                 () -> {
-                    WorldSyncLogger.info("Upload sync complete for world {}.", levelId);
+                    WorldSyncLogger.info("Upload sync complete for world {}", levelId);
                     worldsync$returnToTitleIfStillSyncing(minecraft);
                 },
                 error -> {
-                    WorldSyncLogger.error("Upload sync failed for world {}.", levelId, error);
+                    WorldSyncLogger.error("Upload sync failed for world {}", levelId, error);
                     worldsync$returnToTitleIfStillSyncing(minecraft);
                 }
         );

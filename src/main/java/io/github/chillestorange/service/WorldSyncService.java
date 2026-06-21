@@ -47,10 +47,13 @@ public final class WorldSyncService {
         t.setDaemon(true);
         return t;
     });
+    private static final String LEVEL_DAT = "level.dat";
+    private static final String REMOTE_LEVEL_DAT = "remote_level.dat";
     private static volatile CloudStorageProvider provider;
     private static volatile HashCache hashCache;
     private static volatile String remoteFolderId;
     private static volatile Path configDir;
+
     private WorldSyncService() {
     }
 
@@ -82,7 +85,9 @@ public final class WorldSyncService {
      * directly from a mixin callback on the client thread.
      */
     public static CompletableFuture<Void> runSyncCycle(Path worldPath) {
-        return runSyncCycle(worldPath, () -> {}, error -> {});
+        return runSyncCycle(worldPath, () -> {
+        }, _ -> {
+        });
     }
 
     public static CompletableFuture<Void> runSyncCycle(
@@ -119,7 +124,7 @@ public final class WorldSyncService {
         // so Files.exists(worldPath) can return true while level.dat doesn't exist
         // yet — which caused a NoSuchFileException when the old check just tested
         // the directory.
-        boolean firstRun = !Files.exists(worldPath.resolve("level.dat"));
+        boolean firstRun = !Files.exists(worldPath.resolve(LEVEL_DAT));
         SyncDirection direction;
 
         if (firstRun) {
@@ -127,16 +132,16 @@ public final class WorldSyncService {
             // with a comment saying "force download everything", but "-1" is the no-op
             // direction in that codebase, so sync() returned immediately and first-time
             // download never actually happened. Fixed here by setting DOWNLOAD directly.
-            WorldSyncLogger.info("World not found locally — downloading from cloud storage");
+            WorldSyncLogger.info("World not found locally, downloading from cloud storage");
             Files.createDirectories(worldPath);
             direction = SyncDirection.DOWNLOAD;
         } else {
-            Path remoteLevelDat = configDir.resolve("remote_files/level.dat");
-            CloudItem remoteLevelDatItem = provider.findByNameInFolder("level.dat", remoteFolderId)
+            Path remoteLevelDat = configDir.resolve(REMOTE_LEVEL_DAT);
+            CloudItem remoteLevelDatItem = provider.findByNameInFolder(LEVEL_DAT, remoteFolderId)
                     .orElseThrow(() -> new IOException("level.dat not found remotely in folder " + remoteFolderId));
             provider.downloadFile(remoteLevelDatItem.id(), remoteLevelDat);
 
-            LevelSync.Summary local = LevelSync.read(worldPath.resolve("level.dat"));
+            LevelSync.Summary local = LevelSync.read(worldPath.resolve(LEVEL_DAT));
             LevelSync.Summary remote = LevelSync.read(remoteLevelDat);
 
             WorldSyncLogger.debug("Level.dat comparison: local ticks={} remote ticks={}", local.time(), remote.time());
@@ -149,33 +154,34 @@ public final class WorldSyncService {
             return;
         }
 
-        WorldSyncLogger.info("Starting sync — direction: " + direction);
+        WorldSyncLogger.info("Starting sync, direction: {}", direction);
 
         Map<String, List<CloudItem>> tree = provider.fetchTree(remoteFolderId);
-        WorldSyncLogger.info("Remote tree fetched: " + tree.size() + " folders mapped");
+        WorldSyncLogger.info("Remote tree fetched: {} folders mapped", tree.size());
 
         SyncDiffEngine diffEngine = new SyncDiffEngine();
         SyncDiffEngine.Result diff = diffEngine.buildChangeset(
                 worldPath, remoteFolderId, tree, hashCache, direction);
 
-        WorldSyncLogger.info(diff.toUpload().size() + " uploads, " + diff.toDownload().size()
-                + " downloads, " + diff.folderTasks().size() + " folder(s) to create");
+        WorldSyncLogger.info("{} uploads, {} downloads, {} folder(s) to create",
+                diff.toUpload().size(), diff.toDownload().size(), diff.folderTasks().size());
 
         // Folder creation happens synchronously here, before the transfer pool
         // starts — two threads racing to create the same folder on either side
         // causes intermittent errors.
         for (FolderTask task : diff.folderTasks()) {
-            if (task instanceof FolderTask.CreateLocal(Path path)) {
-                Files.createDirectories(path);
-            } else if (task instanceof FolderTask.CreateRemote(Path localPath, String parentFolderId, String name)) {
-                String newFolderId = provider.createFolder(parentFolderId, name,
-                        Files.getLastModifiedTime(localPath).toInstant());
+            switch (task) {
+                case FolderTask.CreateLocal(Path path) -> Files.createDirectories(path);
+                case FolderTask.CreateRemote(Path localPath, String parentFolderId, String name) -> {
+                    String newFolderId = provider.createFolder(parentFolderId, name,
+                            Files.getLastModifiedTime(localPath).toInstant());
 
-                // The diff couldn't see inside this folder while building the
-                // changeset, since it didn't exist remotely yet. Now that it has a
-                // real id, walk its local contents directly so anything inside
-                // gets uploaded this same cycle instead of waiting one cycle late.
-                diffEngine.discoverNewLocalFolderContents(provider, localPath, newFolderId, diff.toUpload());
+                    // The diff couldn't see inside this folder while building the
+                    // changeset, since it didn't exist remotely yet. Now that it has a
+                    // real id, walk its local contents directly so anything inside
+                    // gets uploaded this same cycle instead of waiting one cycle late.
+                    diffEngine.discoverNewLocalFolderContents(provider, localPath, newFolderId, diff.toUpload());
+                }
             }
         }
 

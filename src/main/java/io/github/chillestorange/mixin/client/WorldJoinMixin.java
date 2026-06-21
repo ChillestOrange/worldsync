@@ -24,6 +24,7 @@ import java.nio.file.Path;
 @Mixin(WorldListEntry.class)
 public class WorldJoinMixin {
 
+    @Unique
     private static final String LEVEL_DAT = "level.dat";
 
     @Shadow
@@ -54,7 +55,7 @@ public class WorldJoinMixin {
         minecraft.setScreen(new SyncingScreen());
 
         var worldPath = minecraft.getLevelSource().getLevelPath(levelId);
-        WorldSyncLogger.info("Starting join-triggered sync for world {}.", levelId);
+        WorldSyncLogger.info("Starting join-triggered sync for world {}", levelId);
 
         WorldSyncService.runSyncCycle(
                 worldPath,
@@ -72,9 +73,9 @@ public class WorldJoinMixin {
         // WorldDataHelper.updateSingleplayerUuid().
         try {
             WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid);
-            WorldSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={}).", uuid, levelDatPath);
+            WorldSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={})", uuid, levelDatPath);
         } catch (IOException | IllegalStateException e) {
-            WorldSyncLogger.error("Failed to update singleplayer_uuid in {}. Opening world anyway.", levelDatPath, e);
+            WorldSyncLogger.error("Failed to update singleplayer_uuid in {}. Opening world anyway", levelDatPath, e);
         }
 
         // TODO: Optionally add a feature to display sync completed on syncing screen (for UX)
@@ -85,7 +86,7 @@ public class WorldJoinMixin {
 
     @Unique
     private void worldsync$onSyncFailed(Screen previousScreen, String levelId, Throwable error) {
-        WorldSyncLogger.error("Sync failed for world {}.", levelId, error);
+        WorldSyncLogger.error("Sync failed for world {}", levelId, error);
 
         minecraft.execute(() -> {
             if (minecraft.screen instanceof SyncingScreen) {
