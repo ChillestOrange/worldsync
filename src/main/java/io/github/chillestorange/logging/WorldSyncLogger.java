@@ -25,6 +25,10 @@ public final class WorldSyncLogger {
         LOGGER.error(msg);
     }
 
+    public static void error(String format, Object... args) {
+        LOGGER.error(format, args);
+    }
+
     public static void error(String msg, Throwable t) {
         LOGGER.error(msg, t);
     }
