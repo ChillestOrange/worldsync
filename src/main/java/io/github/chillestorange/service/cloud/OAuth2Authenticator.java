@@ -200,14 +200,20 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
         int expiresIn = obj.has("expires_in") ? obj.get("expires_in").getAsInt() : 3600;
         accessTokenExpiry = Instant.now().plusSeconds(expiresIn);
         persistTokens();
+
+        // Whether this came from a fresh authorization-code exchange or a routine
+        // refresh, the authenticator is now in a "good" state. Any UI showing an
+        // auth-required prompt should stand down — that's exactly what this event
+        // is for. publish() is a no-op if nothing is currently subscribed.
+        AuthEventBus.publish(new AuthEvent.Complete());
     }
 
     private static void openBrowser(String url) throws IOException {
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             Desktop.getDesktop().browse(URI.create(url));
         } else {
-            // TODO: Add a copy-to-clipboard button.
             WorldSyncLogger.warn("Cannot open a browser automatically. Visit this URL manually: " + url);
+            AuthEventBus.publish(new AuthEvent.BrowserUnavailable(url));
         }
     }
 
