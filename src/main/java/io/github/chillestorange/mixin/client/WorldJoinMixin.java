@@ -6,9 +6,9 @@ import io.github.chillestorange.logging.WorldSyncLogger;
 import io.github.chillestorange.service.WorldSyncService;
 import io.github.chillestorange.util.WorldDataHelper;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList.WorldListEntry;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.world.level.storage.LevelSummary;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,6 +17,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.UUID;
 
@@ -45,7 +46,7 @@ public class WorldJoinMixin {
 
         ci.cancel();
 
-        Screen  PreviousScreen = minecraft.screen;
+        Screen PreviousScreen = minecraft.screen;
         minecraft.setScreen(new SyncingScreen());
 
         Path worldPath = minecraft.getLevelSource().getLevelPath(levelId);
@@ -56,8 +57,14 @@ public class WorldJoinMixin {
 
             Path levelDatPath = worldPath.resolve("level.dat");
 
-            if (!WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid)) {
-                WorldSyncLogger.error("Failed to update level.dat — opening world anyway: " + levelDatPath);
+            try {
+                WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid);
+
+                WorldSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={}).", uuid, levelDatPath);
+            } catch (IOException | IllegalArgumentException e) {
+                WorldSyncLogger.error("Failed to update singleplayer_uuid in level.dat. "
+                        + "Opening world anyway: " + levelId, e);
+
                 return;
             }
 
