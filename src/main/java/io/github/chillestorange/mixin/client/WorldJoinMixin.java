@@ -6,20 +6,19 @@ import io.github.chillestorange.logging.WorldSyncLogger;
 import io.github.chillestorange.service.WorldSyncService;
 import io.github.chillestorange.util.WorldDataHelper;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList;
 import net.minecraft.client.gui.screens.worldselection.WorldSelectionList.WorldListEntry;
 import net.minecraft.world.level.storage.LevelSummary;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.UUID;
 
 @Mixin(WorldListEntry.class)
 public class WorldJoinMixin {
@@ -46,30 +45,30 @@ public class WorldJoinMixin {
 
         ci.cancel();
 
-        Screen PreviousScreen = minecraft.screen;
+        // TODO: Add functionality to cancel sync and return to world selection menu.
         minecraft.setScreen(new SyncingScreen());
 
-        Path worldPath = minecraft.getLevelSource().getLevelPath(levelId);
+        var worldPath = minecraft.getLevelSource().getLevelPath(levelId);
         WorldSyncLogger.info("Starting join-triggered sync for world: {}", levelId);
 
-        WorldSyncService.runSyncCycle(worldPath, () -> {
-            UUID uuid = minecraft.getUser().getProfileId();
+        WorldSyncService.runSyncCycle(worldPath, () -> worldsync$onSyncComplete(levelId, worldPath));
+    }
 
-            Path levelDatPath = worldPath.resolve("level.dat");
+    @Unique
+    private void worldsync$onSyncComplete(String levelId, Path worldPath) {
+        var uuid = minecraft.getUser().getProfileId();
+        var levelDatPath = worldPath.resolve("level.dat");
 
-            try {
-                WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid);
+        // Exceptions intentionally limited to those documented by
+        // WorldDataHelper.updateSingleplayerUuid().
+        try {
+            WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid);
+            WorldSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={}).", uuid, levelDatPath);
+        } catch (IOException | IllegalStateException e) {
+            WorldSyncLogger.error("Failed to update singleplayer_uuid in level.dat. Opening world anyway: {}", levelId, e);
+        }
 
-                WorldSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={}).", uuid, levelDatPath);
-            } catch (IOException | IllegalArgumentException e) {
-                WorldSyncLogger.error("Failed to update singleplayer_uuid in level.dat. "
-                        + "Opening world anyway: " + levelId, e);
-
-                return;
-            }
-
-            minecraft.execute(() ->
-                    minecraft.createWorldOpenFlows().openWorld(levelId, list::returnToScreen));
-        });
+        minecraft.execute(() ->
+                minecraft.createWorldOpenFlows().openWorld(levelId, list::returnToScreen));
     }
 }
