@@ -13,6 +13,7 @@ import net.minecraft.world.level.storage.LevelStorageSource;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
+import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
@@ -49,9 +50,25 @@ public class WorldSaveMixin {
         Minecraft minecraft = Minecraft.getInstance();
         minecraft.execute(() -> minecraft.setScreen(new SyncingScreen()));
 
-        WorldSyncService.runSyncCycle(worldPath, () -> {
-            WorldSyncLogger.info("Upload sync complete: world={}", levelId);
-            minecraft.execute(() -> minecraft.setScreen(new TitleScreen()));
+        WorldSyncService.runSyncCycle(
+                worldPath,
+                () -> {
+                    WorldSyncLogger.info("Upload sync complete for world {}.", levelId);
+                    worldsync$returnToTitleIfStillSyncing(minecraft);
+                },
+                error -> {
+                    WorldSyncLogger.error("Upload sync failed for world {}.", levelId, error);
+                    worldsync$returnToTitleIfStillSyncing(minecraft);
+                }
+        );
+    }
+
+    @Unique
+    private void worldsync$returnToTitleIfStillSyncing(Minecraft minecraft) {
+        minecraft.execute(() -> {
+            if (minecraft.screen instanceof SyncingScreen) {
+                minecraft.setScreen(new TitleScreen());
+            }
         });
     }
 }

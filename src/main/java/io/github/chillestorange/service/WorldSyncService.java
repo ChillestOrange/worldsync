@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 /**
  * This is the call site that replaces:
@@ -81,11 +82,12 @@ public final class WorldSyncService {
      * directly from a mixin callback on the client thread.
      */
     public static CompletableFuture<Void> runSyncCycle(Path worldPath) {
-        return runSyncCycle(worldPath, () -> {
-        });
+        return runSyncCycle(worldPath, () -> {}, error -> {});
     }
 
-    public static CompletableFuture<Void> runSyncCycle(Path worldPath, Runnable onSuccess) {
+    public static CompletableFuture<Void> runSyncCycle(
+            Path worldPath, Runnable onSuccess, Consumer<Throwable> onFailure) {
+
         if (provider == null) {
             throw new IllegalStateException("WorldSyncService.initialize(...) must be called before runSyncCycle(...)");
         }
@@ -98,8 +100,13 @@ public final class WorldSyncService {
             try {
                 doSync(worldPath);
                 onSuccess.run();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                WorldSyncLogger.error("Sync cycle interrupted", e);
+                onFailure.accept(e);
             } catch (Exception e) {
                 WorldSyncLogger.error("Sync cycle failed", e);
+                onFailure.accept(e);
             } finally {
                 SYNC_RUNNING.set(false);
             }
