@@ -209,12 +209,34 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
     }
 
     private static void openBrowser(String url) throws IOException {
+        boolean opened = false;
+
         if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
             Desktop.getDesktop().browse(URI.create(url));
+            opened = true;
         } else {
-            WorldSyncLogger.debug("Cannot open a browser automatically. Visit this URL manually: {}", url);
-            AuthEventBus.publish(new AuthEvent.BrowserUnavailable(url));
+            String os = System.getProperty("os.name").toLowerCase();
+            try {
+                if (os.contains("win")) {
+                    new ProcessBuilder("rundll32", "url.dll,FileProtocolHandler", url).start();
+                    opened = true;
+                } else if (os.contains("mac")) {
+                    new ProcessBuilder("open", url).start();
+                    opened = true;
+                } else {
+                    new ProcessBuilder("xdg-open", url).start();
+                    opened = true;
+                }
+            } catch (IOException e) {
+                WorldSyncLogger.warn("OS browser launch failed: " + e.getMessage());
+            }
         }
+
+        WorldSyncLogger.info(opened ? "Browser opened for authorization." : "Could not open browser automatically.");
+
+        // Always publish — SyncingScreen switches to auth view and shows the
+        // URL regardless, so the user always has it available if needed.
+        AuthEventBus.publish(new AuthEvent.BrowserUnavailable(url));
     }
 
     private static String extractParam(String query, String key) {
