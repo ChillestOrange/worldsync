@@ -7,7 +7,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import org.jetbrains.annotations.Nullable;
-
+import org.lwjgl.glfw.GLFW;
 public class SyncingScreen extends Screen {
 
     private static final long FRAME_DURATION_MS = 400;
@@ -82,6 +82,7 @@ public class SyncingScreen extends Screen {
         if (copyButton != null) {
             copyButton.visible = true;
         }
+        GLFW.glfwSetWindowAttrib(this.minecraft.getWindow().handle(), GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_FALSE);
     }
 
     private void onAuthComplete() {
@@ -91,6 +92,11 @@ public class SyncingScreen extends Screen {
             copyButton.visible = false;
             copyButton.setMessage(LABEL_COPY);
         }
+
+        long windowHandle = this.minecraft.getWindow().handle();
+        GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_TRUE);
+        GLFW.glfwRestoreWindow(windowHandle);
+        GLFW.glfwFocusWindow(windowHandle);
     }
 
     private void copyUrlToClipboard() {
@@ -121,12 +127,15 @@ public class SyncingScreen extends Screen {
         super.extractRenderState(graphics, mouseX, mouseY, a);
 
         int centerX = this.width / 2;
-        int centerY = this.height / 2;
 
         if (pendingAuthUrl != null) {
             renderAuthState(graphics, centerX);
         } else {
-            renderSyncState(graphics, centerX, centerY);
+            int centerY = this.height / 2;
+            long elapsed = System.currentTimeMillis() - startTimeMillis;
+            String dots = DOT_FRAMES[(int) (elapsed / FRAME_DURATION_MS) % DOT_FRAMES.length];
+            graphics.centeredText(this.font, "Syncing world" + dots, centerX, centerY - 10, 0xFFFFFFFF);
+            renderSpinner(graphics, centerX, centerY + 14, elapsed);
         }
     }
 
@@ -163,7 +172,8 @@ public class SyncingScreen extends Screen {
 
         // Explanation — slightly dimmed to create visual hierarchy below the title
         graphics.centeredText(this.font,
-                "A browser window could not be opened automatically.",
+                "A browser has opened for authorization." +
+                        "Press F11 and login , or paste this link if it didn't open:\"",
                 centerX, topY + lineHeight + TITLE_SPACING, 0xFFAAAAAA);
 //        graphics.centeredText(this.font,
 //                "Copy the URL below and paste it into your browser:",
