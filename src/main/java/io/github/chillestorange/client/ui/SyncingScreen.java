@@ -22,6 +22,7 @@ public class SyncingScreen extends Screen {
     private static final int BUTTON_WIDTH = 150;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_GAP = 8;
+    private boolean wasFullscreen = false;
 
     private final long startTimeMillis = System.currentTimeMillis();
     @Nullable
@@ -79,11 +80,17 @@ public class SyncingScreen extends Screen {
 
     private void onAuthUrlReceived(String url) {
         this.pendingAuthUrl = url;
-        if (copyButton != null) {
-            copyButton.visible = true;
+        if (this.copyButton != null) {
+            this.copyButton.visible = true;
         }
-        GLFW.glfwSetWindowAttrib(this.minecraft.getWindow().handle(), GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_FALSE);
+        long windowHandle = this.minecraft.getWindow().handle();
+        this.wasFullscreen = this.minecraft.getWindow().isFullscreen();
+        if(this.wasFullscreen){
+            this.minecraft.getWindow().toggleFullScreen();
+        }
+        GLFW.glfwIconifyWindow(windowHandle);
     }
+
 
     private void onAuthComplete() {
         this.pendingAuthUrl = null;
@@ -94,9 +101,13 @@ public class SyncingScreen extends Screen {
         }
 
         long windowHandle = this.minecraft.getWindow().handle();
-        GLFW.glfwSetWindowAttrib(windowHandle, GLFW.GLFW_AUTO_ICONIFY, GLFW.GLFW_TRUE);
         GLFW.glfwRestoreWindow(windowHandle);
         GLFW.glfwFocusWindow(windowHandle);
+
+        if(this.wasFullscreen){
+            this.minecraft.getWindow().toggleFullScreen();
+            this.wasFullscreen = false;
+        }
     }
 
     private void copyUrlToClipboard() {
@@ -173,7 +184,7 @@ public class SyncingScreen extends Screen {
         // Explanation — slightly dimmed to create visual hierarchy below the title
         graphics.centeredText(this.font,
                 "A browser has opened for authorization." +
-                        "Press F11 and login , or paste this link if it didn't open:\"",
+                        "If not Press F11 and login , or paste this link if it didn't open:\"",
                 centerX, topY + lineHeight + TITLE_SPACING, 0xFFAAAAAA);
 //        graphics.centeredText(this.font,
 //                "Copy the URL below and paste it into your browser:",
