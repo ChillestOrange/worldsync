@@ -1,0 +1,11 @@
+plugins {
+    alias(libs.plugins.fabric.loom)
+}
+
+dependencies {
+    minecraft libs.minecraft
+    compileOnly libs.fabric.loader
+}
+
+// Common is an implementation detail and produces no distributable artifacts.
+tasks.named('jar') { enabled = false }

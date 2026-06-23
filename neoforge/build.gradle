@@ -1,0 +1,78 @@
+plugins {
+    alias(libs.plugins.neoforge.moddev)
+}
+
+sourceSets {
+    main {
+        java      { srcDir "${rootDir}/common/src/main/java" }
+        resources { srcDir "${rootDir}/common/src/main/resources" }
+    }
+}
+
+neoForge {
+    version = libs.versions.neoforge.get()
+
+    runs {
+        client {
+            client()
+            ideName = 'NeoForge Client'
+            gameDirectory.set(file("${rootDir}/run/client"))
+        }
+        server {
+            server()
+            ideName = 'NeoForge Server'
+            gameDirectory.set(file("${rootDir}/run/server"))
+        }
+    }
+
+    mods {
+        "$mod_id" {
+            sourceSet sourceSets.main
+        }
+    }
+}
+
+dependencies {
+    implementation libs.bundles.neoforge.runtime
+}
+
+processResources {
+    // Merge common resources, excluding the dev-only Fabric placeholder.
+//    from(rootProject.file("common/src/main/resources")) {
+//        exclude("fabric.mod.json")
+//    }
+
+    def props = [
+            mod_id              : mod_id,
+            mod_version         : mod_version,
+            mod_name            : mod_name,
+            mod_description     : mod_description,
+            mod_license         : mod_license,
+            mod_authors         : mod_authors,
+            minecraft_version   : libs.versions.minecraft.get(),
+            neoforge_version    : libs.versions.neoforge.get(),
+            resource_pack_format: resource_pack_format,
+    ]
+    inputs.properties props
+    filesMatching(['META-INF/neoforge.mods.toml', 'pack.mcmeta']) { expand props }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(libs.versions.java.get().toInteger())
+    }
+    withSourcesJar()
+}
+
+jar {
+    archiveBaseName = mod_id
+    archiveClassifier = 'neoforge'
+    from('LICENSE') {
+        rename { "${it}_${project.name}" }
+    }
+}
+
+tasks.named('sourcesJar') {
+    archiveBaseName = mod_id
+    archiveClassifier = 'neoforge-sources'
+}

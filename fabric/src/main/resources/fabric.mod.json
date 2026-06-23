@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "id": "${mod_id}",
+  "version": "${mod_version}",
+  "name": "${mod_name}",
+  "description": "${mod_description}",
+  "authors": [
+    "ChillestOrange"
+  ],
+  "contact": {
+    "homepage": "https://github.com/chillestorange/worldsync",
+    "sources": "https://github.com/chillestorange/worldsync",
+    "issues": "https://github.com/chillestorange/worldsync/issues"
+  },
+  "license": "${mod_license}",
+  "icon": "assets/worldsync/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "main": [
+      "io.github.chillestorange.fabric.WorldSyncFabric"
+    ],
+    "client": [
+      "io.github.chillestorange.fabric.client.WorldSyncClientFabric"
+    ],
+    "modmenu": [
+      "io.github.chillestorange.integration.ModMenuIntegration"
+    ]
+  },
+  "suggests": {
+    "modmenu": "*"
+  },
+  "mixins": [
+    "worldsync.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${fabric_loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=25",
+    "fabric-api": "*"
+  }
+}

@@ -1,0 +1,79 @@
+plugins {
+    alias(libs.plugins.fabric.loom)
+    id 'maven-publish'
+}
+
+sourceSets {
+    main {
+        java      { srcDir "${rootDir}/common/src/main/java" }
+        resources { srcDir "${rootDir}/common/src/main/resources" }
+    }
+}
+
+loom {
+    mods {
+        "$mod_id" {
+            sourceSet sourceSets.main
+        }
+    }
+
+    runs {
+        client {
+            client()
+            runDirectory.set(file("${rootDir}/run/client"))
+        }
+        server {
+            server()
+            runDirectory.set(file("${rootDir}/run/server"))
+        }
+    }
+}
+
+dependencies {
+    minecraft      libs.minecraft
+
+    implementation libs.bundles.fabric.runtime
+    compileOnly    libs.modmenu
+}
+
+processResources {
+    exclude 'pack.mcmeta'
+
+    def props = [
+            mod_id               : mod_id,
+            mod_version          : mod_version,
+            mod_name             : mod_name,
+            mod_description      : mod_description,
+            mod_license          : mod_license,
+            minecraft_version    : libs.versions.minecraft.get(),
+            fabric_loader_version: libs.versions.fabric.loader.get(),
+    ]
+    inputs.properties props
+    filesMatching('fabric.mod.json') { expand props }
+}
+
+java {
+    withSourcesJar()
+}
+
+jar {
+    archiveBaseName = mod_id
+    archiveClassifier = 'fabric'
+    from('LICENSE') {
+        rename { "${it}_${project.name}" }
+    }
+}
+
+sourcesJar {
+    archiveBaseName = mod_id
+    archiveClassifier = 'fabric-sources'
+}
+
+// configure the maven publication
+publishing {
+    publications {
+        create('mavenJava', MavenPublication) {
+            from components.java
+        }
+    }
+}

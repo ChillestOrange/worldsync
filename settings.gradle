@@ -1,13 +1,11 @@
 pluginManagement {
-	repositories {
-		maven {
-			name = 'Fabric'
-			url = 'https://maven.fabricmc.net/'
-		}
-		mavenCentral()
-		gradlePluginPortal()
-	}
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        maven { name = 'Fabric';    url = 'https://maven.fabricmc.net/' }
+        maven { name = 'NeoForged'; url = 'https://maven.neoforged.net/releases' }
+    }
 }
 
-// Should match your modid
-rootProject.name = 'worldsync'
+rootProject.name = mod_id
+include ':common', ':fabric', ':neoforge'
