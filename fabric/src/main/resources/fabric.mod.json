@@ -16,11 +16,8 @@
   "icon": "assets/worldsync/icon.png",
   "environment": "*",
   "entrypoints": {
-    "main": [
-      "io.github.chillestorange.fabric.WorldSyncFabric"
-    ],
     "client": [
-      "io.github.chillestorange.fabric.client.WorldSyncClientFabric"
+      "io.github.chillestorange.fabric.WorldSyncClientFabric"
     ],
     "modmenu": [
       "io.github.chillestorange.integration.ModMenuIntegration"
