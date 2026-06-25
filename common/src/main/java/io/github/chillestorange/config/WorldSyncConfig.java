@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import io.github.chillestorange.fabric.WorldSyncFabric;
+import io.github.chillestorange.fabric.WorldSyncClientFabric;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.Credentials;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.ProviderType;
 import net.fabricmc.loader.api.FabricLoader;
@@ -17,14 +17,14 @@ public final class WorldSyncConfig {
     public static final ConfigClassHandler<WorldSyncConfig> HANDLER =
             ConfigClassHandler.createBuilder(WorldSyncConfig.class)
                     .id(Identifier.fromNamespaceAndPath(
-                            WorldSyncFabric.MOD_ID,
+                            WorldSyncClientFabric.MOD_ID,
                             "config"
                     ))
                     .serializer(config -> GsonConfigSerializerBuilder.create(config)
                             .setPath(
                                     FabricLoader.getInstance()
                                             .getConfigDir()
-                                            .resolve(WorldSyncFabric.MOD_ID + ".json5")
+                                            .resolve(WorldSyncClientFabric.MOD_ID + ".json5")
                             )
                             .appendGsonBuilder(GsonBuilder::setPrettyPrinting)
                             .setJson5(true)
@@ -124,7 +124,7 @@ public final class WorldSyncConfig {
      * itself so these files don't appear alongside user-edited config.
      */
     public static Path configDir() {
-        return FabricLoader.getInstance().getConfigDir().resolve(WorldSyncFabric.MOD_ID);
+        return FabricLoader.getInstance().getConfigDir().resolve(WorldSyncClientFabric.MOD_ID);
     }
 
     public static int threadThreshold() {

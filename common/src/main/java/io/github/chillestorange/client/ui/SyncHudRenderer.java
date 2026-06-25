@@ -1,15 +1,11 @@
 package io.github.chillestorange.client.ui;
 
 import io.github.chillestorange.service.WorldSyncService;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
-import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
-import net.minecraft.resources.Identifier;
 
-public class SyncHudOverlay implements HudElement {
+public class SyncHudRenderer {
 
     private static final int PADDING = 6;
     private static final long COMPLETE_HOLD_MS = 2500; // how long "World synced" stays fully visible
@@ -21,12 +17,9 @@ public class SyncHudOverlay implements HudElement {
     private boolean wasSyncing = false;
     private long syncEndedAtMs = -1;
 
-    public static void register() {
-        HudElementRegistry.addLast(Identifier.fromNamespaceAndPath("worldsync", "sync_status"), new SyncHudOverlay());
-    }
 
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+
+    public void render(GuiGraphicsExtractor graphics) {
         boolean syncing = WorldSyncService.isSyncing();
         long now = System.currentTimeMillis();
 
@@ -37,9 +30,7 @@ public class SyncHudOverlay implements HudElement {
             syncEndedAtMs = now; // mark the moment sync finished
         }
 
-        if (!syncing && syncEndedAtMs < 0) {
-            return; // fully idle, draw nothing
-        }
+        if (!syncing && syncEndedAtMs < 0) return;
 
         String label;
         int accentColor;
@@ -50,9 +41,8 @@ public class SyncHudOverlay implements HudElement {
             accentColor = ACCENT_SYNCING;
         } else {
             long sinceEnd = now - syncEndedAtMs;
-            long fullyGoneAt = COMPLETE_HOLD_MS + FADE_DURATION_MS;
 
-            if (sinceEnd >= fullyGoneAt) {
+            if (sinceEnd >= COMPLETE_HOLD_MS + FADE_DURATION_MS) {
                 wasSyncing = false;
                 syncEndedAtMs = -1;
                 return; // done fading, stop drawing
@@ -63,7 +53,7 @@ public class SyncHudOverlay implements HudElement {
 
             if (sinceEnd > COMPLETE_HOLD_MS) {
                 float fadeProgress = (sinceEnd - COMPLETE_HOLD_MS) / (float) FADE_DURATION_MS;
-                alpha = 1f - Math.max(0f, Math.min(1f, fadeProgress));
+                alpha = 1f - Math.clamp(fadeProgress, 0f, 1f);
             }
         }
 
@@ -113,6 +103,6 @@ public class SyncHudOverlay implements HudElement {
     }
 
     private int clampAlpha(float alpha) {
-        return Math.round(255 * Math.max(0f, Math.min(1f, alpha)));
+        return Math.round(255 * Math.clamp(alpha, 0f, 1f));
     }
 }

@@ -3,6 +3,7 @@ package io.github.chillestorange.neoforge;
 import io.github.chillestorange.client.AutosaveSyncListener;
 import io.github.chillestorange.config.WorldSyncConfig;
 import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.neoforge.client.ui.NeoForgeSyncHud;
 import io.github.chillestorange.service.WorldSyncService;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -25,7 +26,6 @@ public class WorldSyncClientNeoForge {
     private static void onClientSetup(FMLClientSetupEvent event) {
         WorldSyncConfig.HANDLER.load();
         WorldSyncLogger.setDebugEnabled(WorldSyncConfig.debugMode());
-//        SyncHudOverlay.register();
         AutosaveSyncListener.register();
         WorldSyncService.initialize(
                 WorldSyncConfig.providerType(),
