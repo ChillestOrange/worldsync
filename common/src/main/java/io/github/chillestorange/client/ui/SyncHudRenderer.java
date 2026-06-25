@@ -17,8 +17,6 @@ public class SyncHudRenderer {
     private boolean wasSyncing = false;
     private long syncEndedAtMs = -1;
 
-
-
     public void render(GuiGraphicsExtractor graphics) {
         boolean syncing = WorldSyncService.isSyncing();
         long now = System.currentTimeMillis();

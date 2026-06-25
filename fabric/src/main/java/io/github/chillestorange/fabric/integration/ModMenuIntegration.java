@@ -1,4 +1,4 @@
-package io.github.chillestorange.integration;
+package io.github.chillestorange.fabric.integration;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

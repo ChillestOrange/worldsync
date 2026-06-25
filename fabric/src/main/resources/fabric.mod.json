@@ -20,7 +20,7 @@
       "io.github.chillestorange.fabric.WorldSyncClientFabric"
     ],
     "modmenu": [
-      "io.github.chillestorange.integration.ModMenuIntegration"
+      "io.github.chillestorange.fabric.integration.ModMenuIntegration"
     ]
   },
   "suggests": {
