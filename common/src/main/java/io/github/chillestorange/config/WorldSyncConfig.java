@@ -4,10 +4,10 @@ import com.google.gson.GsonBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import io.github.chillestorange.fabric.WorldSyncClientFabric;
+import io.github.chillestorange.WorldSyncConstants;
+import io.github.chillestorange.platform.Services;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.Credentials;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.ProviderType;
-import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.resources.Identifier;
 
 import java.nio.file.Path;
@@ -17,14 +17,14 @@ public final class WorldSyncConfig {
     public static final ConfigClassHandler<WorldSyncConfig> HANDLER =
             ConfigClassHandler.createBuilder(WorldSyncConfig.class)
                     .id(Identifier.fromNamespaceAndPath(
-                            WorldSyncClientFabric.MOD_ID,
+                            WorldSyncConstants.MOD_ID,
                             "config"
                     ))
                     .serializer(config -> GsonConfigSerializerBuilder.create(config)
                             .setPath(
-                                    FabricLoader.getInstance()
-                                            .getConfigDir()
-                                            .resolve(WorldSyncClientFabric.MOD_ID + ".json5")
+                                    Services.PLATFORM
+                                            .getConfigDirectory()
+                                            .resolve(WorldSyncConstants.MOD_ID + ".json5")
                             )
                             .appendGsonBuilder(GsonBuilder::setPrettyPrinting)
                             .setJson5(true)
@@ -124,7 +124,7 @@ public final class WorldSyncConfig {
      * itself so these files don't appear alongside user-edited config.
      */
     public static Path configDir() {
-        return FabricLoader.getInstance().getConfigDir().resolve(WorldSyncClientFabric.MOD_ID);
+        return Services.PLATFORM.getConfigDirectory().resolve(WorldSyncConstants.MOD_ID);
     }
 
     public static int threadThreshold() {

@@ -9,8 +9,6 @@ import net.fabricmc.api.ClientModInitializer;
 
 public final class WorldSyncClientFabric implements ClientModInitializer {
 
-    public static final String MOD_ID = "worldsync";
-
     @Override
     public void onInitializeClient() {
         WorldSyncConfig.HANDLER.load();
