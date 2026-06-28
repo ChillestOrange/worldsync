@@ -1,9 +1,9 @@
 package io.github.chillestorange.mixin.client;
 
 import io.github.chillestorange.client.ui.SyncingScreen;
-import io.github.chillestorange.config.WorldSyncConfig;
-import io.github.chillestorange.logging.WorldSyncLogger;
-import io.github.chillestorange.service.WorldSyncService;
+import io.github.chillestorange.config.GameSyncConfig;
+import io.github.chillestorange.logging.GameSyncLogger;
+import io.github.chillestorange.service.GameSyncService;
 import io.github.chillestorange.util.WorldDataHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
@@ -40,10 +40,10 @@ public class WorldJoinMixin {
     private WorldSelectionList list;
 
     @Inject(method = "joinWorld", at = @At("HEAD"), cancellable = true)
-    private void worldsync$joinWorld(CallbackInfo ci) {
+    private void gamesync$joinWorld(CallbackInfo ci) {
 
         String levelId = summary.getLevelId();
-        if (!WorldSyncConfig.targetWorld().equals(levelId)) {
+        if (!GameSyncConfig.targetWorld().equals(levelId)) {
             return;
         }
 
@@ -55,17 +55,17 @@ public class WorldJoinMixin {
         minecraft.setScreen(new SyncingScreen());
 
         var worldPath = minecraft.getLevelSource().getLevelPath(levelId);
-        WorldSyncLogger.info("Starting join-triggered sync for world {}", levelId);
+        GameSyncLogger.info("Starting join-triggered sync for world {}", levelId);
 
-        WorldSyncService.runSyncCycle(
+        GameSyncService.runSyncCycle(
                 worldPath,
-                () -> worldsync$onSyncComplete(levelId, worldPath),
-                error -> worldsync$onSyncFailed(previousScreen, levelId, error)
+                () -> gamesync$onSyncComplete(levelId, worldPath),
+                error -> gamesync$onSyncFailed(previousScreen, levelId, error)
         );
     }
 
     @Unique
-    private void worldsync$onSyncComplete(String levelId, Path worldPath) {
+    private void gamesync$onSyncComplete(String levelId, Path worldPath) {
         var uuid = minecraft.getUser().getProfileId();
         var levelDatPath = worldPath.resolve(LEVEL_DAT);
 
@@ -73,9 +73,9 @@ public class WorldJoinMixin {
         // WorldDataHelper.updateSingleplayerUuid().
         try {
             WorldDataHelper.updateSingleplayerUuid(levelDatPath, uuid);
-            WorldSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={})", uuid, levelDatPath);
+            GameSyncLogger.debug("Updated singleplayer_uuid in level.dat to {} (path={})", uuid, levelDatPath);
         } catch (IOException | IllegalStateException e) {
-            WorldSyncLogger.error("Failed to update singleplayer_uuid in {}. Opening world anyway", levelDatPath, e);
+            GameSyncLogger.error("Failed to update singleplayer_uuid in {}. Opening world anyway", levelDatPath, e);
         }
 
         // TODO: Optionally add a feature to display sync completed on syncing screen (for UX)
@@ -85,8 +85,8 @@ public class WorldJoinMixin {
     }
 
     @Unique
-    private void worldsync$onSyncFailed(Screen previousScreen, String levelId, Throwable error) {
-        WorldSyncLogger.error("Sync failed for world {}", levelId, error);
+    private void gamesync$onSyncFailed(Screen previousScreen, String levelId, Throwable error) {
+        GameSyncLogger.error("Sync failed for world {}", levelId, error);
 
         minecraft.execute(() -> {
             if (minecraft.screen instanceof SyncingScreen) {

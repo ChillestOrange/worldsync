@@ -1,9 +1,9 @@
 package io.github.chillestorange.client;
 
-import io.github.chillestorange.config.WorldSyncConfig;
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.config.GameSyncConfig;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.platform.PlatformServices;
-import io.github.chillestorange.service.WorldSyncService;
+import io.github.chillestorange.service.GameSyncService;
 import net.minecraft.client.server.IntegratedServer;
 import net.minecraft.server.MinecraftServer;
 
@@ -19,7 +19,7 @@ public final class AutosaveSyncListener {
     }
 
     private static void onServerTick(MinecraftServer server) {
-        WorldSyncConfig config = WorldSyncConfig.HANDLER.instance();
+        GameSyncConfig config = GameSyncConfig.HANDLER.instance();
 
         if (!config.autosaveSyncEnabled) {
             return;
@@ -43,8 +43,8 @@ public final class AutosaveSyncListener {
                 .resolve("saves")
                 .resolve(worldName);
 
-        WorldSyncLogger.info("Detected autosave tick for target world, starting sync: world=", worldName);
+        GameSyncLogger.info("Detected autosave tick for target world, starting sync: world=", worldName);
 
-        WorldSyncService.runSyncCycle(worldPath);
+        GameSyncService.runSyncCycle(worldPath);
     }
 }

@@ -1,6 +1,6 @@
 package io.github.chillestorange.platform;
 
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.platform.services.IPlatformEvents;
 import io.github.chillestorange.platform.services.IPlatformHelper;
 
@@ -22,7 +22,7 @@ public final class PlatformServices {
                         "Failed to load platform service: " + serviceClass.getName()
                 ));
 
-        WorldSyncLogger.debug("Loaded {} -> {}", serviceClass.getSimpleName(), service.getClass().getSimpleName());
+        GameSyncLogger.debug("Loaded {} -> {}", serviceClass.getSimpleName(), service.getClass().getSimpleName());
 
         return service;
     }

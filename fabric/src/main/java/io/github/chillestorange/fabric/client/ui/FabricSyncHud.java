@@ -1,5 +1,6 @@
 package io.github.chillestorange.fabric.client.ui;
 
+import io.github.chillestorange.GameSyncConstants;
 import io.github.chillestorange.client.ui.SyncHudRenderer;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
@@ -13,7 +14,7 @@ public class FabricSyncHud implements HudElement {
 
     public static void register() {
         HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath("worldsync", "sync_status"),
+                Identifier.fromNamespaceAndPath(GameSyncConstants.MOD_ID, "sync_status"),
                 new FabricSyncHud()
         );
     }

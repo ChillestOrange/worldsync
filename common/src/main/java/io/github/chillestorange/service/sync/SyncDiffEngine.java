@@ -1,6 +1,6 @@
 package io.github.chillestorange.service.sync;
 
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.service.cloud.CloudItem;
 import io.github.chillestorange.service.cloud.CloudStorageProvider;
 
@@ -83,11 +83,11 @@ public final class SyncDiffEngine {
                 String remoteId = existsOnServer ? serverItem.id() : null;
 
                 if (!existsLocally && direction == SyncDirection.DOWNLOAD) {
-                    WorldSyncLogger.debug("Queueing local folder creation: {}", localFile);
+                    GameSyncLogger.debug("Queueing local folder creation: {}", localFile);
                     folderTasks.add(new FolderTask.CreateLocal(localFile));
                 }
                 if (!existsOnServer && direction == SyncDirection.UPLOAD) {
-                    WorldSyncLogger.debug("Queueing remote folder creation: {}", localFile);
+                    GameSyncLogger.debug("Queueing remote folder creation: {}", localFile);
                     folderTasks.add(new FolderTask.CreateRemote(localFile, folderId, name));
                 }
 
@@ -103,7 +103,7 @@ public final class SyncDiffEngine {
             if (existsLocally) {
                 long ageMillis = System.currentTimeMillis() - Files.getLastModifiedTime(localFile).toMillis();
                 if (ageMillis < SKIP_IF_MODIFIED_WITHIN_MILLIS) {
-                    WorldSyncLogger.debug("Skipping mid-write file: {} (age {}ms)", localFile, ageMillis);
+                    GameSyncLogger.debug("Skipping mid-write file: {} (age {}ms)", localFile, ageMillis);
                     continue; // mid-write guard
                 }
             }
@@ -119,24 +119,24 @@ public final class SyncDiffEngine {
 
                 if (direction == SyncDirection.UPLOAD && localModified.isAfter(remoteModified)) {
                     if (contentLikelyChanged(localFile, relKey, serverItem, hashCache)) {
-                        WorldSyncLogger.debug("Queueing upload: {} (local={} remote={})", relKey, localModified, remoteModified);
+                        GameSyncLogger.debug("Queueing upload: {} (local={} remote={})", relKey, localModified, remoteModified);
                         toUpload.add(new TransferTask(localFile, serverItem.id(), folderId, name, null));
                     } else {
-                        WorldSyncLogger.debug("Fingerprint match, skipping upload: {}", localFile);
+                        GameSyncLogger.debug("Fingerprint match, skipping upload: {}", localFile);
                     }
                 } else if (direction == SyncDirection.DOWNLOAD && remoteModified.isAfter(localModified)) {
-                    WorldSyncLogger.debug("Queueing download: {} (local={} remote={})", relKey, localModified, remoteModified);
+                    GameSyncLogger.debug("Queueing download: {} (local={} remote={})", relKey, localModified, remoteModified);
                     toDownload.add(new TransferTask(localFile, serverItem.id(), folderId, name, serverItem.modifiedTime()));
                 }
 
             } else if (existsLocally) {
                 if (direction == SyncDirection.UPLOAD) {
-                    WorldSyncLogger.debug("Queueing upload for local-only file: {} ", relKey);
+                    GameSyncLogger.debug("Queueing upload for local-only file: {} ", relKey);
                     toUpload.add(new TransferTask(localFile, null, folderId, name, null));
                 }
             } else { // existsOnServer only
                 if (direction == SyncDirection.DOWNLOAD) {
-                    WorldSyncLogger.debug("Queueing upload for remote-only file: {} ", relKey);
+                    GameSyncLogger.debug("Queueing upload for remote-only file: {} ", relKey);
                     toDownload.add(new TransferTask(localFile, serverItem.id(), folderId, name, serverItem.modifiedTime()));
                 }
             }
@@ -144,7 +144,7 @@ public final class SyncDiffEngine {
     }
 
     /**
-     * Called by WorldSyncService right after it creates a brand-new remote
+     * Called by GameSyncService right after it creates a brand-new remote
      * folder. walk() above can't see inside that folder yet — its recursion is
      * gated on a remote id existing, which is exactly what didn't exist when
      * this folder's CreateRemote task was queued. Without this follow-up,
@@ -172,7 +172,7 @@ public final class SyncDiffEngine {
             if (IGNORED_FILES.contains(name)) continue;
 
             if (Files.isDirectory(child)) {
-                WorldSyncLogger.debug("Creating remote subfolder: {}", child);
+                GameSyncLogger.debug("Creating remote subfolder: {}", child);
                 String newSubfolderId = provider.createFolder(remoteFolderId, name, Files.getLastModifiedTime(child).toInstant());
                 discoverNewLocalFolderContents(provider, child, newSubfolderId, toUpload);
             } else {

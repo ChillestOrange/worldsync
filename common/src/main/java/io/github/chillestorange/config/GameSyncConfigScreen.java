@@ -5,18 +5,18 @@ import dev.isxander.yacl3.api.controller.BooleanControllerBuilder;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerSliderControllerBuilder;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.ProviderType;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
-public class WorldSyncConfigScreen {
+public class GameSyncConfigScreen {
 
-    private WorldSyncConfigScreen() {
+    private GameSyncConfigScreen() {
     }
 
     public static Screen createScreen(Screen parent) {
-        WorldSyncConfig instance = WorldSyncConfig.HANDLER.instance();
+        GameSyncConfig instance = GameSyncConfig.HANDLER.instance();
 
         // --- General: what to sync, and when ---
 
@@ -31,12 +31,12 @@ public class WorldSyncConfigScreen {
         Option<ProviderType> cloudProviderOption = Option.<ProviderType>createBuilder()
                 .name(Component.literal("Cloud Provider"))
                 .description(OptionDescription.of(Component.literal(
-                        "The cloud service WorldSync stores your backup with. Only Google Drive is supported right now.")))
+                        "The cloud service GameSync stores your backup with. Only Google Drive is supported right now.")))
                 .binding(
                         ProviderType.GOOGLE_DRIVE,
                         () -> {
                             try {
-                                return WorldSyncConfig.providerType();
+                                return GameSyncConfig.providerType();
                             } catch (IllegalArgumentException e) {
                                 return ProviderType.GOOGLE_DRIVE;
                             }
@@ -85,7 +85,7 @@ public class WorldSyncConfigScreen {
                 .group(autosaveGroup)
                 .build();
 
-        // --- Google Drive: where the world goes and how WorldSync authenticates ---
+        // --- Google Drive: where the world goes and how GameSync authenticates ---
 
         Option<String> remoteFolderIdOption = Option.<String>createBuilder()
                 .name(Component.literal("Remote Folder ID"))
@@ -180,7 +180,7 @@ public class WorldSyncConfigScreen {
                         "Verbose logging for troubleshooting.")))
                 .binding(false, () -> instance.debugMode, v -> {
                     instance.debugMode = v;
-                    WorldSyncLogger.setDebugEnabled(v);
+                    GameSyncLogger.setDebugEnabled(v);
                 })
                 .controller(BooleanControllerBuilder::create)
                 .build();
@@ -198,11 +198,11 @@ public class WorldSyncConfigScreen {
                 .build();
 
         return YetAnotherConfigLib.createBuilder()
-                .title(Component.literal("WorldSync"))
+                .title(Component.literal("GameSync"))
                 .category(generalCategory)
                 .category(driveCategory)
                 .category(advancedCategory)
-                .save(WorldSyncConfig.HANDLER::save)
+                .save(GameSyncConfig.HANDLER::save)
                 .build()
                 .generateScreen(parent);
     }

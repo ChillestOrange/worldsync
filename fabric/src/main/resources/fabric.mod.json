@@ -5,19 +5,20 @@
   "name": "${mod_name}",
   "description": "${mod_description}",
   "authors": [
-    "ChillestOrange"
+    "ChillestOrange",
+    "Mayank Sharma"
   ],
   "contact": {
-    "homepage": "https://github.com/chillestorange/worldsync",
-    "sources": "https://github.com/chillestorange/worldsync",
-    "issues": "https://github.com/chillestorange/worldsync/issues"
+    "homepage": "https://github.com/chillestorange/gamesync",
+    "sources": "https://github.com/chillestorange/gamesync",
+    "issues": "https://github.com/chillestorange/gamesync/issues"
   },
   "license": "${mod_license}",
-  "icon": "assets/worldsync/icon.png",
+  "icon": "assets/gamesync/icon.png",
   "environment": "*",
   "entrypoints": {
     "client": [
-      "io.github.chillestorange.fabric.WorldSyncClientFabric"
+      "io.github.chillestorange.fabric.GameSyncClientFabric"
     ],
     "modmenu": [
       "io.github.chillestorange.fabric.integration.ModMenuIntegration"
@@ -27,7 +28,7 @@
     "modmenu": "*"
   },
   "mixins": [
-    "worldsync.mixins.json"
+    "gamesync.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",

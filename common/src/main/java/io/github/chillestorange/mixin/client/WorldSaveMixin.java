@@ -1,9 +1,9 @@
 package io.github.chillestorange.mixin.client;
 
 import io.github.chillestorange.client.ui.SyncingScreen;
-import io.github.chillestorange.config.WorldSyncConfig;
-import io.github.chillestorange.logging.WorldSyncLogger;
-import io.github.chillestorange.service.WorldSyncService;
+import io.github.chillestorange.config.GameSyncConfig;
+import io.github.chillestorange.logging.GameSyncLogger;
+import io.github.chillestorange.service.GameSyncService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.server.IntegratedServer;
@@ -26,7 +26,7 @@ public class WorldSaveMixin {
     protected LevelStorageSource.LevelStorageAccess storageSource;
 
     @Inject(method = "stopServer", at = @At("TAIL"))
-    private void worldsync$stopServer(CallbackInfo ci) {
+    private void gamesync$stopServer(CallbackInfo ci) {
         MinecraftServer server = (MinecraftServer) (Object) this;
 
         if (!(server instanceof IntegratedServer)) {
@@ -34,32 +34,32 @@ public class WorldSaveMixin {
         }
 
         String levelId = storageSource.getLevelId();
-        if (!WorldSyncConfig.targetWorld().equals(levelId)) {
+        if (!GameSyncConfig.targetWorld().equals(levelId)) {
             return;
         }
 
         var worldPath = storageSource.getLevelPath(LevelResource.ROOT);
 
-        WorldSyncLogger.info("Target world closed, starting upload sync for world {}", levelId);
+        GameSyncLogger.info("Target world closed, starting upload sync for world {}", levelId);
 
         var minecraft = Minecraft.getInstance();
         minecraft.execute(() -> minecraft.setScreen(new SyncingScreen()));
 
-        WorldSyncService.runSyncCycle(
+        GameSyncService.runSyncCycle(
                 worldPath,
                 () -> {
-                    WorldSyncLogger.info("Upload sync complete for world {}", levelId);
-                    worldsync$returnToTitleIfStillSyncing(minecraft);
+                    GameSyncLogger.info("Upload sync complete for world {}", levelId);
+                    gamesync$returnToTitleIfStillSyncing(minecraft);
                 },
                 error -> {
-                    WorldSyncLogger.error("Upload sync failed for world {}", levelId, error);
-                    worldsync$returnToTitleIfStillSyncing(minecraft);
+                    GameSyncLogger.error("Upload sync failed for world {}", levelId, error);
+                    gamesync$returnToTitleIfStillSyncing(minecraft);
                 }
         );
     }
 
     @Unique
-    private void worldsync$returnToTitleIfStillSyncing(Minecraft minecraft) {
+    private void gamesync$returnToTitleIfStillSyncing(Minecraft minecraft) {
         minecraft.execute(() -> {
             if (minecraft.screen instanceof SyncingScreen) {
                 minecraft.setScreen(new TitleScreen());

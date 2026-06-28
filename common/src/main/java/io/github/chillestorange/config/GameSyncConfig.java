@@ -4,7 +4,7 @@ import com.google.gson.GsonBuilder;
 import dev.isxander.yacl3.config.v2.api.ConfigClassHandler;
 import dev.isxander.yacl3.config.v2.api.SerialEntry;
 import dev.isxander.yacl3.config.v2.api.serializer.GsonConfigSerializerBuilder;
-import io.github.chillestorange.WorldSyncConstants;
+import io.github.chillestorange.GameSyncConstants;
 import io.github.chillestorange.platform.PlatformServices;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.Credentials;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.ProviderType;
@@ -12,19 +12,19 @@ import net.minecraft.resources.Identifier;
 
 import java.nio.file.Path;
 
-public final class WorldSyncConfig {
+public final class GameSyncConfig {
 
-    public static final ConfigClassHandler<WorldSyncConfig> HANDLER =
-            ConfigClassHandler.createBuilder(WorldSyncConfig.class)
+    public static final ConfigClassHandler<GameSyncConfig> HANDLER =
+            ConfigClassHandler.createBuilder(GameSyncConfig.class)
                     .id(Identifier.fromNamespaceAndPath(
-                            WorldSyncConstants.MOD_ID,
+                            GameSyncConstants.MOD_ID,
                             "config"
                     ))
                     .serializer(config -> GsonConfigSerializerBuilder.create(config)
                             .setPath(
                                     PlatformServices.PLATFORM
                                             .getConfigDirectory()
-                                            .resolve(WorldSyncConstants.MOD_ID + ".json5")
+                                            .resolve(GameSyncConstants.MOD_ID + ".json5")
                             )
                             .appendGsonBuilder(GsonBuilder::setPrettyPrinting)
                             .setJson5(true)
@@ -96,7 +96,7 @@ public final class WorldSyncConfig {
             return ProviderType.valueOf(raw);
         } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException(
-                    "Unknown cloudProvider in worldsync.json5: '" + raw +
+                    "Unknown cloudProvider in gamesync.json5: '" + raw +
                             "'. Valid values: GOOGLE_DRIVE", e);
         }
     }
@@ -106,7 +106,7 @@ public final class WorldSyncConfig {
     }
 
     /**
-     * Builds the credential object WorldSyncService.initialize() needs.
+     * Builds the credential object GameSyncService.initialize() needs.
      * tokenStorePath is derived from configDir() so it doesn't need its
      * own config field — the user never needs to know where tokens live.
      */
@@ -119,12 +119,12 @@ public final class WorldSyncConfig {
     }
 
     /**
-     * Dedicated subdirectory under Fabric's config dir for WorldSync runtime
-     * files (OAuth tokens, hash cache). Kept separate from worldsync.json5
+     * Dedicated subdirectory under Fabric's config dir for GameSync runtime
+     * files (OAuth tokens, hash cache). Kept separate from gamesync.json5
      * itself so these files don't appear alongside user-edited config.
      */
     public static Path configDir() {
-        return PlatformServices.PLATFORM.getConfigDirectory().resolve(WorldSyncConstants.MOD_ID);
+        return PlatformServices.PLATFORM.getConfigDirectory().resolve(GameSyncConstants.MOD_ID);
     }
 
     public static int threadThreshold() {

@@ -3,7 +3,7 @@ package io.github.chillestorange.service.cloud.gdrive;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.service.cloud.CloudAuthenticator;
 import io.github.chillestorange.service.cloud.CloudItem;
 import io.github.chillestorange.service.cloud.CloudStorageProvider;
@@ -57,7 +57,7 @@ public final class GoogleDriveProvider implements CloudStorageProvider {
      * removes the risk entirely.
      */
     private static String newBoundary() {
-        return "WorldSyncBoundary" + UUID.randomUUID();
+        return "GameSyncBoundary" + UUID.randomUUID();
     }
 
     private static CloudItem toCloudItem(JsonObject obj) {
@@ -112,7 +112,7 @@ public final class GoogleDriveProvider implements CloudStorageProvider {
             pageToken = body.has("nextPageToken") ? body.get("nextPageToken").getAsString() : null;
         } while (pageToken != null);
 
-        if (WorldSyncLogger.isDebugEnabled()) WorldSyncLogger.debug("Fetched folder {} ({} children)", folderId, result.size());
+        if (GameSyncLogger.isDebugEnabled()) GameSyncLogger.debug("Fetched folder {} ({} children)", folderId, result.size());
 
         return result;
     }
@@ -143,7 +143,7 @@ public final class GoogleDriveProvider implements CloudStorageProvider {
         Path parent = destination.toAbsolutePath().getParent();
         if (parent != null) Files.createDirectories(parent);
 
-        Path tempFile = destination.resolveSibling(destination.getFileName() + ".worldsync-tmp-" + System.nanoTime());
+        Path tempFile = destination.resolveSibling(destination.getFileName() + ".gamesync-tmp-" + System.nanoTime());
         String url = FILES_ENDPOINT + "/" + fileId + "?alt=media&supportsAllDrives=true";
 
         try {
@@ -168,7 +168,7 @@ public final class GoogleDriveProvider implements CloudStorageProvider {
     /**
      * Files only — folders never reach here. SyncDiffEngine only ever emits
      * TransferTasks for files; folder creation is handled separately via
-     * createFolder(), called directly by WorldSyncService's FolderTask handling.
+     * createFolder(), called directly by GameSyncService's FolderTask handling.
      * <p>
      * Note this no longer does its own "does this already exist?" lookup —
      * existingFileId already carries that answer from SyncDiffEngine, which

@@ -2,7 +2,7 @@ modLoader     = "javafml"
 loaderVersion = "[4,)"
 license       = "${mod_license}"
 
-issueTrackerURL = "https://github.com/chillestorange/worldsync/issues"
+issueTrackerURL = "https://github.com/chillestorange/gamesync/issues"
 
 [[mods]]
 modId       = "${mod_id}"
@@ -10,7 +10,7 @@ version     = "${mod_version}"
 displayName = "${mod_name}"
 description = '''${mod_description}'''
 logoFile    = "assets/${mod_id}/icon.png"
-displayURL  = "https://github.com/chillestorange/worldsync"
+displayURL  = "https://github.com/chillestorange/gamesync"
 authors     = "${mod_authors}"
 
 [[dependencies.${mod_id}]]

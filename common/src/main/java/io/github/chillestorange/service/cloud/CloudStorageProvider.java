@@ -1,6 +1,6 @@
 package io.github.chillestorange.service.cloud;
 
-import io.github.chillestorange.config.WorldSyncConfig;
+import io.github.chillestorange.config.GameSyncConfig;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -21,7 +21,7 @@ import java.util.concurrent.Executors;
  * (in the gdrive subpackage) is the only implementation today, but every
  * method here is deliberately phrased in terms general enough to fit Dropbox,
  * OneDrive, etc. — folders containing named items, each with an id and a
- * modified time. SyncDiffEngine, FileTransferManager, and WorldSyncService all
+ * modified time. SyncDiffEngine, FileTransferManager, and GameSyncService all
  * depend on this interface, never on a concrete provider.
  */
 public interface CloudStorageProvider {
@@ -42,7 +42,7 @@ public interface CloudStorageProvider {
         Set<String> visited = ConcurrentHashMap.newKeySet();
 
         // Using Thread pool with number of workers from the mod menu
-        ExecutorService executor = Executors.newFixedThreadPool(WorldSyncConfig.maxWorkers());
+        ExecutorService executor = Executors.newFixedThreadPool(GameSyncConfig.maxWorkers());
 
         try {
             fetchFolderAsync(rootFolderId, tree, visited, executor).join();

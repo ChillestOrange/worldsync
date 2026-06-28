@@ -1,6 +1,6 @@
 package io.github.chillestorange.service;
 
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.service.cloud.CloudItem;
 import io.github.chillestorange.service.cloud.CloudStorageFactory;
 import io.github.chillestorange.service.cloud.CloudStorageFactory.Credentials;
@@ -28,13 +28,13 @@ import java.util.function.Consumer;
  * <p>
  * with:
  * <p>
- * WorldSyncService.initialize(...);          // once, at mod startup
- * WorldSyncService.runSyncCycle(worldPath);   // every trigger after that
+ * GameSyncService.initialize(...);          // once, at mod startup
+ * GameSyncService.runSyncCycle(worldPath);   // every trigger after that
  * <p>
  * wired into your AutosaveSyncListener / WorldSaveMixin / WorldJoinMixin
  * wherever the process used to get launched.
  */
-public final class WorldSyncService {
+public final class GameSyncService {
 
     // Replaces lock.py's PID-file lock entirely. That existed because
     // file_accesser.exe could be launched as a brand-new OS process every
@@ -43,7 +43,7 @@ public final class WorldSyncService {
     // world-join-triggered one).
     private static final AtomicBoolean SYNC_RUNNING = new AtomicBoolean(false);
     private static final ExecutorService SYNC_EXECUTOR = Executors.newSingleThreadExecutor(r -> {
-        Thread t = new Thread(r, "worldsync-cycle");
+        Thread t = new Thread(r, "gamesync-cycle");
         t.setDaemon(true);
         return t;
     });
@@ -54,7 +54,7 @@ public final class WorldSyncService {
     private static volatile String remoteFolderId;
     private static volatile Path configDir;
 
-    private WorldSyncService() {
+    private GameSyncService() {
     }
 
     public static boolean isSyncing() {
@@ -62,7 +62,7 @@ public final class WorldSyncService {
     }
 
     /**
-     * Call once at mod startup (e.g. from WorldSyncClient's initializer), not
+     * Call once at mod startup (e.g. from GameSyncClient's initializer), not
      * on every sync cycle. Building the provider, authenticator, and hash
      * cache fresh every cycle was forced when this was a freshly-launched
      * process each time; now that it's one long-lived JVM, doing that every
@@ -75,8 +75,8 @@ public final class WorldSyncService {
         HttpClient sharedHttpClient = HttpClient.newHttpClient();
         provider = CloudStorageFactory.create(providerType, credentials, sharedHttpClient);
         hashCache = new HashCache(configDir.resolve("sync_hash_cache.json"), provider::computeLocalFingerprint);
-        WorldSyncService.remoteFolderId = remoteFolderId;
-        WorldSyncService.configDir = configDir;
+        GameSyncService.remoteFolderId = remoteFolderId;
+        GameSyncService.configDir = configDir;
     }
 
     /**
@@ -94,10 +94,10 @@ public final class WorldSyncService {
             Path worldPath, Runnable onSuccess, Consumer<Throwable> onFailure) {
 
         if (provider == null) {
-            throw new IllegalStateException("WorldSyncService.initialize(...) must be called before runSyncCycle(...)");
+            throw new IllegalStateException("GameSyncService.initialize(...) must be called before runSyncCycle(...)");
         }
         if (!SYNC_RUNNING.compareAndSet(false, true)) {
-            WorldSyncLogger.info("Sync already running, skipping this trigger");
+            GameSyncLogger.info("Sync already running, skipping this trigger");
             return CompletableFuture.completedFuture(null);
         }
 
@@ -107,10 +107,10 @@ public final class WorldSyncService {
                 onSuccess.run();
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                WorldSyncLogger.error("Sync cycle interrupted", e);
+                GameSyncLogger.error("Sync cycle interrupted", e);
                 onFailure.accept(e);
             } catch (Exception e) {
-                WorldSyncLogger.error("Sync cycle failed", e);
+                GameSyncLogger.error("Sync cycle failed", e);
                 onFailure.accept(e);
             } finally {
                 SYNC_RUNNING.set(false);
@@ -132,7 +132,7 @@ public final class WorldSyncService {
             // with a comment saying "force download everything", but "-1" is the no-op
             // direction in that codebase, so sync() returned immediately and first-time
             // download never actually happened. Fixed here by setting DOWNLOAD directly.
-            WorldSyncLogger.info("World not found locally, downloading from cloud storage");
+            GameSyncLogger.info("World not found locally, downloading from cloud storage");
             Files.createDirectories(worldPath);
             direction = SyncDirection.DOWNLOAD;
         } else {
@@ -144,26 +144,26 @@ public final class WorldSyncService {
             LevelSync.Summary local = LevelSync.read(worldPath.resolve(LEVEL_DAT));
             LevelSync.Summary remote = LevelSync.read(remoteLevelDat);
 
-            WorldSyncLogger.debug("Level.dat comparison: local ticks={} remote ticks={}", local.time(), remote.time());
+            GameSyncLogger.debug("Level.dat comparison: local ticks={} remote ticks={}", local.time(), remote.time());
 
             direction = LevelSync.compare(local, remote);
         }
 
         if (direction == SyncDirection.NO_OP) {
-            WorldSyncLogger.info("Worlds already in sync, nothing to do");
+            GameSyncLogger.info("Worlds already in sync, nothing to do");
             return;
         }
 
-        WorldSyncLogger.info("Starting sync, direction: {}", direction);
+        GameSyncLogger.info("Starting sync, direction: {}", direction);
 
         Map<String, List<CloudItem>> tree = provider.fetchTree(remoteFolderId);
-        WorldSyncLogger.info("Remote tree fetched: {} folders mapped", tree.size());
+        GameSyncLogger.info("Remote tree fetched: {} folders mapped", tree.size());
 
         SyncDiffEngine diffEngine = new SyncDiffEngine();
         SyncDiffEngine.Result diff = diffEngine.buildChangeset(
                 worldPath, remoteFolderId, tree, hashCache, direction);
 
-        WorldSyncLogger.info("{} uploads, {} downloads, {} folder(s) to create",
+        GameSyncLogger.info("{} uploads, {} downloads, {} folder(s) to create",
                 diff.toUpload().size(), diff.toDownload().size(), diff.folderTasks().size());
 
         // Folder creation happens synchronously here, before the transfer pool
@@ -188,6 +188,6 @@ public final class WorldSyncService {
         new FileTransferManager(provider).runTransfers(diff.toUpload(), diff.toDownload());
 
         hashCache.save();
-        WorldSyncLogger.info("Sync cycle complete");
+        GameSyncLogger.info("Sync cycle complete");
     }
 }

@@ -1,7 +1,7 @@
 package io.github.chillestorange.service.sync;
 
-import io.github.chillestorange.config.WorldSyncConfig;
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.config.GameSyncConfig;
+import io.github.chillestorange.logging.GameSyncLogger;
 import io.github.chillestorange.service.cloud.CloudStorageProvider;
 import io.github.chillestorange.service.sync.SyncDiffEngine.TransferTask;
 
@@ -29,10 +29,10 @@ import java.util.concurrent.Future;
  */
 public final class FileTransferManager {
 
-    private static final int THREAD_THRESHOLD = WorldSyncConfig.threadThreshold();
-    private static final int MAX_WORKERS = WorldSyncConfig.maxWorkers();
-    private static final int MAX_RETRIES = WorldSyncConfig.maxRetries();
-    private static final long RETRY_DELAY_MILLIS = WorldSyncConfig.retryDelay();
+    private static final int THREAD_THRESHOLD = GameSyncConfig.threadThreshold();
+    private static final int MAX_WORKERS = GameSyncConfig.maxWorkers();
+    private static final int MAX_RETRIES = GameSyncConfig.maxRetries();
+    private static final long RETRY_DELAY_MILLIS = GameSyncConfig.retryDelay();
 
     private final CloudStorageProvider provider;
 
@@ -50,12 +50,12 @@ public final class FileTransferManager {
 
         int total = orderedUploads.size() + toDownload.size();
         if (total == 0) {
-            WorldSyncLogger.info("World already in sync, nothing to transfer");
+            GameSyncLogger.info("World already in sync, nothing to transfer");
             return;
         }
 
         boolean useThreads = total >= THREAD_THRESHOLD;
-        WorldSyncLogger.info(orderedUploads.size() + " to upload, " + toDownload.size() + " to download ("
+        GameSyncLogger.info(orderedUploads.size() + " to upload, " + toDownload.size() + " to download ("
                 + (useThreads ? "threaded, " + MAX_WORKERS + " workers" : "sequential") + ")");
 
         if (!useThreads) {
@@ -79,7 +79,7 @@ public final class FileTransferManager {
             }
         }
 
-        WorldSyncLogger.info("All transfers completed");
+        GameSyncLogger.info("All transfers completed");
     }
 
     private void uploadOne(TransferTask task) {
@@ -87,18 +87,18 @@ public final class FileTransferManager {
             try {
                 provider.uploadOrReplace(task.localPath(), task.remoteId(), task.parentFolderId(), task.name(),
                         Files.getLastModifiedTime(task.localPath()).toInstant());
-                WorldSyncLogger.info("[UP] " + task.name());
+                GameSyncLogger.info("[UP] " + task.name());
                 return;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                WorldSyncLogger.warn("Upload interrupted: " + task.name());
+                GameSyncLogger.warn("Upload interrupted: " + task.name());
                 return; // don't retry — the thread is being told to stop
             } catch (IOException e) {
                 if (attempt < MAX_RETRIES - 1) {
-                    WorldSyncLogger.warn("Upload retry " + (attempt + 1) + "/" + MAX_RETRIES + ": " + task.name());
+                    GameSyncLogger.warn("Upload retry " + (attempt + 1) + "/" + MAX_RETRIES + ": " + task.name());
                     if (sleep()) return;
                 } else {
-                    WorldSyncLogger.error("Upload failed after " + MAX_RETRIES + " attempts: " + task.name(), e);
+                    GameSyncLogger.error("Upload failed after " + MAX_RETRIES + " attempts: " + task.name(), e);
                 }
             }
         }
@@ -114,18 +114,18 @@ public final class FileTransferManager {
                 long ts = task.remoteModifiedTime().toEpochMilli();
                 Files.setLastModifiedTime(task.localPath(), FileTime.fromMillis(ts));
 
-                WorldSyncLogger.info("[DN] " + task.name());
+                GameSyncLogger.info("[DN] " + task.name());
                 return;
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                WorldSyncLogger.warn("Download interrupted: " + task.name());
+                GameSyncLogger.warn("Download interrupted: " + task.name());
                 return;
             } catch (IOException e) {
                 if (attempt < MAX_RETRIES - 1) {
-                    WorldSyncLogger.warn("Download retry " + (attempt + 1) + "/" + MAX_RETRIES + ": " + task.name());
+                    GameSyncLogger.warn("Download retry " + (attempt + 1) + "/" + MAX_RETRIES + ": " + task.name());
                     if (sleep()) return;
                 } else {
-                    WorldSyncLogger.error("Download failed after " + MAX_RETRIES + " attempts: " + task.name(), e);
+                    GameSyncLogger.error("Download failed after " + MAX_RETRIES + " attempts: " + task.name(), e);
                 }
             }
         }

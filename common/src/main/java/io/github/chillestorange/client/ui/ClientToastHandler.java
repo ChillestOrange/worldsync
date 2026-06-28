@@ -5,7 +5,7 @@ import net.minecraft.network.chat.Component;
 
 public final class ClientToastHandler {
 
-    private static final Component TITLE = Component.literal("WorldSync");
+    private static final Component TITLE = Component.literal("Game Sync");
 
     private ClientToastHandler() {
     }

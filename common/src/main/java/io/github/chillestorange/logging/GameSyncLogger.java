@@ -1,16 +1,17 @@
 package io.github.chillestorange.logging;
 
+import io.github.chillestorange.GameSyncConstants;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class WorldSyncLogger {
+public final class GameSyncLogger {
 
-    private static final String LOGGER_NAME = "worldsync";
+    private static final String LOGGER_NAME = GameSyncConstants.MOD_ID;
     private static final Logger LOGGER = LoggerFactory.getLogger(LOGGER_NAME);
 
-    private WorldSyncLogger() {
+    private GameSyncLogger() {
     }
 
     public static void info(String format, Object... args) {

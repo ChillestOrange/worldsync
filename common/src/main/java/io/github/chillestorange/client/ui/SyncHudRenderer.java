@@ -1,6 +1,6 @@
 package io.github.chillestorange.client.ui;
 
-import io.github.chillestorange.service.WorldSyncService;
+import io.github.chillestorange.service.GameSyncService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -18,7 +18,7 @@ public class SyncHudRenderer {
     private long syncEndedAtMs = -1;
 
     public void render(GuiGraphicsExtractor graphics) {
-        boolean syncing = WorldSyncService.isSyncing();
+        boolean syncing = GameSyncService.isSyncing();
         long now = System.currentTimeMillis();
 
         if (syncing) {

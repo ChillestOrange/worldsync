@@ -3,7 +3,7 @@ package io.github.chillestorange.service.cloud;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.sun.net.httpserver.HttpServer;
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 
 import java.awt.Desktop;
 import java.io.IOException;
@@ -66,11 +66,11 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
         }
         if (refreshToken != null) {
             try {
-                WorldSyncLogger.debug("Refreshing access token...");
+                GameSyncLogger.debug("Refreshing access token...");
                 refreshAccessToken();
                 return accessToken;
             } catch (IOException e) {
-                WorldSyncLogger.warn("Refresh token rejected, falling back to full login: " + e.getMessage());
+                GameSyncLogger.warn("Refresh token rejected, falling back to full login: " + e.getMessage());
             }
         }
         runAuthorizationFlow();
@@ -86,7 +86,7 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
             if (obj.has("access_token"))  accessToken  = obj.get("access_token").getAsString();
             if (obj.has("expiry"))        accessTokenExpiry = Instant.parse(obj.get("expiry").getAsString());
         } catch (IOException e) {
-            WorldSyncLogger.warn("Could not read stored credentials: " + e.getMessage());
+            GameSyncLogger.warn("Could not read stored credentials: " + e.getMessage());
         }
     }
 
@@ -100,7 +100,7 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
             if (parent != null) Files.createDirectories(parent);
             Files.writeString(tokenStorePath, gson.toJson(obj), StandardCharsets.UTF_8);
         } catch (IOException e) {
-            WorldSyncLogger.warn("Could not persist credentials: " + e.getMessage());
+            GameSyncLogger.warn("Could not persist credentials: " + e.getMessage());
         }
     }
 
@@ -136,8 +136,8 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
             capturedCode.set(code);
 
             String html = code != null
-                    ? "<html><body>WorldSync authorized — you can close this tab.</body></html>"
-                    : "<html><body>WorldSync authorization failed — check the mod log.</body></html>";
+                    ? "<html><body>GameSync authorized — you can close this tab.</body></html>"
+                    : "<html><body>GameSync authorization failed — check the mod log.</body></html>";
             byte[] bytes = html.getBytes(StandardCharsets.UTF_8);
             exchange.getResponseHeaders().add("Content-Type", "text/html; charset=UTF-8");
             exchange.sendResponseHeaders(200, bytes.length);
@@ -156,7 +156,7 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
                     + "&access_type=offline"
                     + "&prompt=consent";
 
-            WorldSyncLogger.info("Opening browser for authorization...");
+            GameSyncLogger.info("Opening browser for authorization...");
             openBrowser(authUrl);
 
             try {
@@ -228,11 +228,11 @@ public abstract class OAuth2Authenticator implements CloudAuthenticator {
                     opened = true;
                 }
             } catch (IOException e) {
-                WorldSyncLogger.warn("OS browser launch failed: " + e.getMessage());
+                GameSyncLogger.warn("OS browser launch failed: " + e.getMessage());
             }
         }
 
-        WorldSyncLogger.info(opened ? "Browser opened for authorization." : "Could not open browser automatically.");
+        GameSyncLogger.info(opened ? "Browser opened for authorization." : "Could not open browser automatically.");
 
         // Always publish — SyncingScreen switches to auth view and shows the
         // URL regardless, so the user always has it available if needed.

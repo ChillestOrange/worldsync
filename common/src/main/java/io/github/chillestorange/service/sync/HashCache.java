@@ -3,7 +3,7 @@ package io.github.chillestorange.service.sync;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import io.github.chillestorange.logging.WorldSyncLogger;
+import io.github.chillestorange.logging.GameSyncLogger;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -68,11 +68,11 @@ public final class HashCache {
         double mtime = roundToMillisPrecision(Files.getLastModifiedTime(localFile).toMillis() / 1000.0);
         Entry cached = entries.get(relativeKey);
         if (cached != null && cached.mtime() == mtime) {
-            WorldSyncLogger.debug("Cache hit for: {}", relativeKey);
+            GameSyncLogger.debug("Cache hit for: {}", relativeKey);
             return cached.fingerprint();
         }
 
-        WorldSyncLogger.debug("Cache miss (recomputing fingerprint): {}", relativeKey);
+        GameSyncLogger.debug("Cache miss (recomputing fingerprint): {}", relativeKey);
 
         String fingerprint = fingerprintFunction.compute(localFile);
         entries.put(relativeKey, new Entry(mtime, fingerprint));
