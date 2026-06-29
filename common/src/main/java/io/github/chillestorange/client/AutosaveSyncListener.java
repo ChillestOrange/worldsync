@@ -11,6 +11,8 @@ import java.nio.file.Path;
 
 public final class AutosaveSyncListener {
 
+    private static final int CONFIG_RELOAD_INTERVAL_TICKS = 100;
+
     private AutosaveSyncListener() {
     }
 
@@ -19,13 +21,17 @@ public final class AutosaveSyncListener {
     }
 
     private static void onServerTick(MinecraftServer server) {
-        GameSyncConfig config = GameSyncConfig.HANDLER.instance();
-
-        if (!config.autosaveSyncEnabled) {
+        if (!(server instanceof IntegratedServer)) {
             return;
         }
 
-        if (!(server instanceof IntegratedServer)) {
+        if (server.getTickCount() % CONFIG_RELOAD_INTERVAL_TICKS == 0) {
+            GameSyncConfig.HANDLER.load();
+        }
+
+        GameSyncConfig config = GameSyncConfig.HANDLER.instance();
+
+        if (!config.autosaveSyncEnabled) {
             return;
         }
 
