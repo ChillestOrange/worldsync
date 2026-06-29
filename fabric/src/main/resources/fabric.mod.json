@@ -21,7 +21,7 @@
       "io.github.chillestorange.fabric.GameSyncClientFabric"
     ],
     "modmenu": [
-      "io.github.chillestorange.fabric.integration.ModMenuIntegration"
+      "io.github.chillestorange.fabric.compat.GameSyncModMenu"
     ]
   },
   "suggests": {

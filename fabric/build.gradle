@@ -59,6 +59,7 @@ java {
 jar {
     archiveBaseName = mod_id
     archiveClassifier = 'fabric'
+    destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
     from('LICENSE') {
         rename { "${it}_${project.name}" }
     }
@@ -67,6 +68,7 @@ jar {
 sourcesJar {
     archiveBaseName = mod_id
     archiveClassifier = 'fabric-sources'
+    destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
 }
 
 // configure the maven publication

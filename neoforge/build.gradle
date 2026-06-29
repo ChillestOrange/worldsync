@@ -67,6 +67,7 @@ java {
 jar {
     archiveBaseName = mod_id
     archiveClassifier = 'neoforge'
+    destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
     from('LICENSE') {
         rename { "${it}_${project.name}" }
     }
@@ -75,4 +76,5 @@ jar {
 tasks.named('sourcesJar') {
     archiveBaseName = mod_id
     archiveClassifier = 'neoforge-sources'
+    destinationDirectory = rootProject.layout.buildDirectory.dir("libs")
 }
